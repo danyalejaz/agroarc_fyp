@@ -1,0 +1,15 @@
+# Development-only dependencies (notebooks, plotting, tests).
+# NOT installed in the production Docker image to keep it lean.
+# Install locally with:
+#   pip install -r requirements.txt -r requirements-dev.txt
+
+-r requirements.txt
+
+# Notebook training & data visualization
+matplotlib==3.8.2
+seaborn==0.13.0
+jupyter
+
+# Testing & linting
+pytest>=8.0
+ruff>=0.5

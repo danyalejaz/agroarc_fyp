@@ -1,0 +1,19 @@
+# Declarative Heroku deploy spec.
+#
+# Use this when you want Heroku to build the image for you via
+# `git push heroku main` (the "stack=container" path). For the
+# `heroku container:push` workflow this file is harmless — Heroku
+# ignores it and uses the locally-built image instead.
+#
+# The "context: ." line is critical for the backend image because
+# backend/Dockerfile expects the project root as its build context
+# so it can COPY the models/ directory that lives outside backend/.
+
+build:
+  docker:
+    web: backend/Dockerfile
+  config:
+    BUILDKIT_INLINE_CACHE: "1"
+
+run:
+  web: sh -c "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT}"

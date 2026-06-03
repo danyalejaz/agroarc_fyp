@@ -6,6 +6,7 @@ Main entry point for the API server
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
 
 # Import all route modules
 from .routes import crop, fertilizer, weather, chat
@@ -15,8 +16,29 @@ from fastapi.responses import JSONResponse
 from starlette import status
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 logger = logging.getLogger(__name__)
+
+
+def _parse_allowed_origins() -> list[str]:
+    """
+    CORS allowlist driven by the ALLOWED_ORIGINS env var.
+
+    - Unset or "*" -> wide-open (suitable for local development only).
+    - Comma-separated list -> exact origin allowlist (production).
+      Example: "https://agroarc-web.herokuapp.com,https://agroarc.com"
+    """
+    raw = os.getenv("ALLOWED_ORIGINS", "*").strip()
+    if not raw or raw == "*":
+        return ["*"]
+    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+
+ALLOWED_ORIGINS = _parse_allowed_origins()
+logger.info("CORS allowlist: %s", ALLOWED_ORIGINS)
 
 # Create FastAPI application instance
 app = FastAPI(
@@ -28,14 +50,16 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# Add CORS middleware - Allow all origins for development
-# In production, replace ["*"] with specific frontend URLs
+# CORS middleware – defaults to wide-open for local dev, restricted in prod.
+# Set ALLOWED_ORIGINS as a comma-separated list of full origins to lock down.
+# allow_credentials must be False when allow_origins is "*" (browser rule).
+_uses_wildcard = ALLOWED_ORIGINS == ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (development only)
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allow all headers
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=not _uses_wildcard,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
