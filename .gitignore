@@ -1,8 +1,11 @@
-# Environment variables
+# Environment variables (never commit real secrets)
+# Ignore every .env variant but keep example templates.
 .env
-.env.local
-.env.*.local
-.env.prod
+.env.*
+*.env
+!.env.example
+!.env.*.example
+!*.env.example
 
 # Python
 __pycache__/
@@ -59,12 +62,12 @@ htmlcov/
 # API keys and secrets
 secrets.json
 credentials.json
-.env
-.env.local
-.env.*.local
-.env.prod
 *.pem
 *.key
+*.p12
+*.pfx
+*-key.json
+service-account*.json
 private/
 config.json
 
